@@ -1,5 +1,6 @@
 import pygame
 import datetime
+import socket
 import os
 
 black    =    (   0,   0,   0)
@@ -20,13 +21,13 @@ font = pygame.font.SysFont("Courier", TextSize)
 
 screenMode = "Date/Time"; # The mode of the clock. Currently supports a date/time mode, as well as an IP Address mode
 
-def dateTimeMode() :
+def dateTimeMode(blink) :
     now = datetime.datetime.now()
     date = ""
     time = ""
     months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    lit = days[datetime.datetime.today().weekday()] #months[now.month - 1]
+    lit = days[datetime.datetime.today().weekday()] # months[now.month - 1]
 
     hourNumber = now.hour - 12 * (now.hour > 12)
 
@@ -41,16 +42,20 @@ def dateTimeMode() :
         else :
             date  = str(now.month) + "/" + str(now.day)
 
+    colon = ":"
+    if blink :
+        colon = " "
+       
     if hourNumber < 10 :
         if now.minute < 10 :
-            time  = "0" + str(hourNumber) + ":0" + str(now.minute)
+            time  = "0" + str(hourNumber) + colon + "0" + str(now.minute)
         else :
-            time  = "0" + str(hourNumber) + ":" + str(now.minute)
+            time  = "0" + str(hourNumber) + colon + str(now.minute)
     else :
         if now.minute < 10 :
-            time  = str(hourNumber) + ":0" + str(now.minute)
+            time  = str(hourNumber) + colon + "0" + str(now.minute)
         else :
-            time  = str(hourNumber) + ":" + str(now.minute)
+            time  = str(hourNumber) + colon + str(now.minute)
 
     lLabel = font.render(lit,  1, white)
     lCords = []
@@ -75,21 +80,42 @@ def dateTimeMode() :
     pygame.display.flip()
     pygame.time.delay(1000)
 
-def IPAddressMode() :
-    address = "127.0.0.1";
-    addressLabel = font.render(address,  1, white)
 
-    addressCords = []
-    addressCords.append(SW * 0.5 - addressLabel.get_rect().width * 0.5)
-    addressCords.append((SH - addressLabel.get_rect().height) * 0.5 - TextSize)
+def get_ip_address():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    return s.getsockname()[0]
+
+def IPAddressMode() :
+    address = get_ip_address().split('.');
+
+    address1Label = font.render('Server',  1, white)
+    address1Cords = []
+    address1Cords.append(SW * 0.5 - address1Label.get_rect().width * 0.5)
+    address1Cords.append((SH - address1Label.get_rect().height) * 0.5 - TextSize)
+
+    address2Label = font.render(address[0] + '.' + address[1],  1, white)
+    address2Cords = []
+    address2Cords.append(SW * 0.5 - address2Label.get_rect().width * 0.5)
+    address2Cords.append((SH - address2Label.get_rect().height) * 0.5)
+
+    address3Label = font.render(address[2] + '.' + address[3],  1, white)
+    address3Cords = []
+    address3Cords.append(SW * 0.5 - address3Label.get_rect().width * 0.5)
+    address3Cords.append((SH - address3Label.get_rect().height) * 0.5 + TextSize)
 
     screen.fill(black)
-    screen.blit(addressLabel, addressCords)
+    screen.blit(address1Label, address1Cords)
+    screen.blit(address2Label, address2Cords)
+    screen.blit(address3Label, address3Cords)
 
     pygame.display.flip()
-    pygame.time.delay(1000)
+    pygame.time.delay(2500)
 
-    
+
+
+cycleLength = 10 # The number of seconds before the screen quickly shows the IP Address screen
+cycleCount  = 0  # The counter used for timing this automatic cycle
 running = True
 while running:
     for event in pygame.event.get():
@@ -100,9 +126,14 @@ while running:
                 screenMode = "IPAddress"
             else :
                 running = False
-                
-    dateTimeMode()
-    IPAddressMode()
+
+    
+    if screenMode == "IPAddress" or cycleCount > cycleLength :
+        IPAddressMode()
+        cycleCount = 0
+    else :
+        dateTimeMode(cycleCount % 2)
+    cycleCount += 1
     
 
 pygame.quit()
