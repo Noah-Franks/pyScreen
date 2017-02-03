@@ -16,18 +16,11 @@ SW = 480
 SH = 320
 
 TextSize = 96
-
-
 font = pygame.font.SysFont("Courier", TextSize)
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            running = False
+screenMode = "Date/Time"; # The mode of the clock. Currently supports a date/time mode, as well as an IP Address mode
 
+def dateTimeMode() :
     now = datetime.datetime.now()
     date = ""
     time = ""
@@ -81,5 +74,35 @@ while running:
 
     pygame.display.flip()
     pygame.time.delay(1000)
+
+def IPAddressMode() :
+    address = "127.0.0.1";
+    addressLabel = font.render(address,  1, white)
+
+    addressCords = []
+    addressCords.append(SW * 0.5 - addressLabel.get_rect().width * 0.5)
+    addressCords.append((SH - addressLabel.get_rect().height) * 0.5 - TextSize)
+
+    screen.fill(black)
+    screen.blit(addressLabel, addressCords)
+
+    pygame.display.flip()
+    pygame.time.delay(1000)
+
+    
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if screenMode == "Date/Time" :
+                screenMode = "IPAddress"
+            else :
+                running = False
+                
+    dateTimeMode()
+    IPAddressMode()
+    
 
 pygame.quit()
