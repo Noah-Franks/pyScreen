@@ -10,17 +10,20 @@ red      =    ( 255,   0,   0)
 blue     =    (   0,   0, 255)
 yellow   =    ( 255, 255,   0)
 
+# The mouse and toolbars are unnecessary, so the settings are as follows
 pygame.init()
 pygame.mouse.set_visible(0)
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-SW = 480
-SH = 320
+SW = 480 # raspberry pi has a 480 pixel wide screen
+SH = 320 # raspberry pi has a 320 pixel tall screen
 
+# An equal space font with approprate font size for the screen
 TextSize = 96
 font = pygame.font.SysFont("Courier", TextSize)
 
 screenMode = "Date/Time"; # The mode of the clock. Currently supports a date/time mode, as well as an IP Address mode
 
+# Shows the date and time, with the colon blinking every second
 def dateTimeMode(blink) :
     now = datetime.datetime.now()
     date = ""
@@ -81,13 +84,18 @@ def dateTimeMode(blink) :
     pygame.time.delay(1000)
 
 
+# Get's the ip address of the current ethernet connection
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
     return s.getsockname()[0]
 
+# Shows the IP Address, if possible, of the raspberry pi
 def IPAddressMode() :
-    address = get_ip_address().split('.');
+    try :
+        address = get_ip_address().split('.');
+    except Exception :
+        address = ['Critical', ' ', 'Failure', ' ']
 
     address1Label = font.render('Server',  1, white)
     address1Cords = []
